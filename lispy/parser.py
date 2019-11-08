@@ -63,27 +63,27 @@ class LispTransformer(InlineTransformer):
         return result
 
     def ext3(self,cond,verd,fal,*args):
-        print("EXT3")
+        # print("EXT3")
         result = [Symbol("if"),cond,verd,fal]
         if args != ():
             result = [Symbol("if"),cond,verd,self.ext3(fal,*args)]
-            print("result: ",result)
+            # print("result: ",result)
         return result
 
     def ext4(self,*params):
         *params,expr = params
-        print("expr: ",expr)
-        print("param: ",params)
+        # print("expr: ",expr)
+        # print("param: ",params)
         result = [Symbol('lambda'),(params,expr)]
-        print("result: ",result)
+        # print("result: ",result)
         return result
 
     def ext5(self,*params):
-        print("Olá",*params)
+        # print("Olá",*params)
         name, *parameters, expr = params
-        print("name",name)
-        print("parameters",parameters)
-        print("exp",expr)
+        # print("name",name)
+        # print("parameters",parameters)
+        # print("exp",expr)
         result = [Symbol.DEFINE,name,[Symbol('lambda'),(parameters,expr)]]
         return result
 

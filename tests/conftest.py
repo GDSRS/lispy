@@ -2,8 +2,8 @@ import pytest
 from pathlib import Path
 import os
 
-
-examples_path = os.getcwd() +'/tests/examples'
+pai = os.path.dirname(__file__ )
+examples_path = pai +'/examples'
 
 
 @pytest.fixture

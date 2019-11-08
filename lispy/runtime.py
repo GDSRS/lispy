@@ -34,12 +34,12 @@ def eval(x, env=None):
     # Comando (define <symbol> <expression>)
     # Ex: (define x (+ 40 2))
     elif head == Symbol.DEFINE:
-        print("args define: ",args)
+        # print("args define: ",args)
         variable, value_or_expression = args
-        print("variable",variable)
+        # print("variable",variable)
         new_thing = eval(value_or_expression,env)
         env[Symbol(variable)] = new_thing
-        return None
+        # print("env fat, ", env[Symbol('fat')])
 
     # Comando (quote <expression>)
     # (quote (1 2 3))
@@ -71,23 +71,26 @@ def eval(x, env=None):
     # (lambda (x) (+ x 1))
     elif head == Symbol.LAMBDA:
         if len(args) == 1:
-            print(args[0])
+            # print(args[0])
             parameters,expr = args[0]
         else:
             parameters,expr = args
         result = None
-        print("parameters: ",parameters)
+        # print("parameters: ",parameters)
         if any(isinstance(parameter, (float,int,bool)) for parameter in parameters):
             raise TypeError
-        local_ctx = ChainMap({}, global_env)
+        local_ctx = ChainMap({}, env)
         def new_fun(*arguments):
             arguments = list(arguments)
+            # print("arguments: ",arguments)
             for parameter_number in range(len(parameters)):
                 if len(arguments) > 0:
                     local_ctx[parameters[parameter_number]] = arguments[parameter_number]
                 else :
                     local_ctx[parameters[parameter_number]] = arguments
             return eval(expr,local_ctx)
+        # print("local_ctx",local_ctx['fat'])
+        # print("env",env[Symbol('fat')])
         return new_fun
 
     # Lista/chamada de funções
@@ -99,6 +102,11 @@ def eval(x, env=None):
     elif head == Symbol.SUB:
         x,y = args
         return eval(x, env) - eval(y, env)
+    elif head == Symbol.MUL:
+        x,y = args
+        # print("X E Y")
+        # print(x,y)
+        return eval(x,env) * eval(y,env)
     else:
         env_function = eval(head,env)
         arguments = (eval(arg,env) for arg in x[1:])
