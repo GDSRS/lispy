@@ -1,13 +1,56 @@
-?start : value+
+?start : expr
 
-?value : SYMBOL
- 
+?atom : SYMBOL -> symbol
+			 | STRING ->string
+       | BOOL -> bool
+       | FLOAT ->number
+       | INT -> number
+
+?attr : atom "=" expr
+
+binop  : SYMBOL atom atom
+
+?list  : atom
+       | "(" list* ")"->list
+
+quote  : "'" list
+       | "(quote" list ")"
+
+let : "let(" expr+ ")"
+
+func_lambda : "lambda(" expr expr ")"
+
+?symbol_list : SYMBOL
+            |"(" symbol_list+ ")" -> symbol_list
+
+?ext1 : "[" list symbol_list list "]"
+
+?ext2: ":let {" attr+ "} in (" expr ")"
+
+?ext3: ":if " expr "then:" expr (":elif" expr "then:" expr)* ":else:" expr
+
+?ext4: ":fn " atom+ ":" expr
+
+?ext5: ":defn" WORD atom+ ":" expr
+
+?expr  : binop
+       | list
+       | quote
+       | let
+       | func_lambda
+       | ext1
+       | ext2
+       | ext3
+       | ext4
+       | ext5
 
 // Terminais
 SYMBOL.0  : /[-!+\/*@$%^&~<>?|\\\w=]+/
-STRING    : /"[^"\\]*(\\[^\n\t\r\f][^"\\]*)*"/
+STRING.4    : /"[^"\\]*(\\[^\n\t\r\f][^"\\]*)*"/
 INT.1     : /-?\d+/
 FLOAT.2   : /-?\d+\.\d+/
+BOOL	    : /(#t|#f)/
+WORD      :/\w+/
 
 %ignore /\s+/
 %ignore /;[^\n]*/

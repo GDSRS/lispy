@@ -11,7 +11,7 @@ class TestGrammar:
         assert parse("'x") == [Symbol.QUOTE, x]
         assert parse("'(1 2 3)") == [Symbol.QUOTE, [1, 2, 3]]
         assert parse("'(+ 40 2)") == [Symbol.QUOTE, [Symbol.ADD, 40, 2]]
-    
+
 
 class TestRuntime:
     def test_eval_quote(self):
@@ -68,4 +68,4 @@ class TestRuntime:
         assert callable(fn)
         assert fn(1, 2) == 3
         assert fn(40, 2) == 42
-        assert e[x] == 10 
+        assert e[x] == 10

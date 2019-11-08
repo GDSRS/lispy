@@ -63,7 +63,7 @@ class TestExamples:
         run(example('lisp-fat.lispy'), e)
         assert e[var.fat](5) == 120
         assert e[var.fat](10) == 3628800
-        
+
     def test_lisp_fibo_example(self, example):
         e = env()
         run(example('lisp-fibo.lispy'), e)

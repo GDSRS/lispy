@@ -10,49 +10,99 @@ def eval(x, env=None):
     """
     Avalia expressão no ambiente de execução dado.
     """
-    
+
     # Cria ambiente padrão, caso o usuário não passe o argumento opcional "env"
     if env is None:
         env = ChainMap({}, global_env)
-    
+
     # Avalia tipos atômicos
     if isinstance(x, Symbol):
-        return NotImplemented
+        return env[x]
     elif isinstance(x, (int, float, bool, str)):
-        return NotImplemented
+        return x
 
     # Avalia formas especiais e listas
     head, *args = x
-    
+
     # Comando (if <test> <then> <other>)
     # Ex: (if (even? x) (quotient x 2) x)
     if head == Symbol.IF:
-        return NotImplemented
+        (condition,then,alternative) = args
+        expression = (then if eval(condition, env) else alternative)
+        return eval(expression,env)
 
     # Comando (define <symbol> <expression>)
     # Ex: (define x (+ 40 2))
     elif head == Symbol.DEFINE:
-        return NotImplemented
+        print("args define: ",args)
+        variable, value_or_expression = args
+        print("variable",variable)
+        new_thing = eval(value_or_expression,env)
+        env[Symbol(variable)] = new_thing
+        return None
 
     # Comando (quote <expression>)
     # (quote (1 2 3))
     elif head == Symbol.QUOTE:
-        return NotImplemented
+        result = []
+        arguments = args[0]
+        if isinstance(arguments,list) :
+            for x in args[0]:
+                if isinstance(x, (int, float, bool, str)):
+                    result.append(eval(x,env))
+                else:
+                    result.append(Symbol(x))
+        else:
+            return arguments
+        return result
 
     # Comando (let <expression> <expression>)
     # (let ((x 1) (y 2)) (+ x y))
     elif head == Symbol.LET:
-        return NotImplemented
+        sub_env = ChainMap({}, global_env)# pegar as funções sem ter que copiar todo o env
+        declarations,expr = args
+        for declaration in declarations:
+            eval([Symbol.DEFINE,declaration[0],declaration[1]],sub_env)
+
+        result = eval(expr,sub_env)
+        return result
 
     # Comando (lambda <vars> <body>)
     # (lambda (x) (+ x 1))
     elif head == Symbol.LAMBDA:
-        return NotImplemented
+        if len(args) == 1:
+            print(args[0])
+            parameters,expr = args[0]
+        else:
+            parameters,expr = args
+        result = None
+        print("parameters: ",parameters)
+        if any(isinstance(parameter, (float,int,bool)) for parameter in parameters):
+            raise TypeError
+        local_ctx = ChainMap({}, global_env)
+        def new_fun(*arguments):
+            arguments = list(arguments)
+            for parameter_number in range(len(parameters)):
+                if len(arguments) > 0:
+                    local_ctx[parameters[parameter_number]] = arguments[parameter_number]
+                else :
+                    local_ctx[parameters[parameter_number]] = arguments
+            return eval(expr,local_ctx)
+        return new_fun
 
     # Lista/chamada de funções
     # (sqrt 4)
+    elif head == Symbol.ADD:
+        x,y = args
+        return eval(x,env) + eval(y,env)
+
+    elif head == Symbol.SUB:
+        x,y = args
+        return eval(x, env) - eval(y, env)
     else:
-       return NotImplemented
+        env_function = eval(head,env)
+        arguments = (eval(arg,env) for arg in x[1:])
+        return env_function(*arguments)
 
 
 #
@@ -69,11 +119,11 @@ def env(*args, **kwargs):
     Ambiente padrão
     >>> env()
     {...}
-        
+
     Acrescenta algumas variáveis explicitamente
     >>> env(x=1, y=2)
     {x: 1, y: 2, ...}
-        
+
     Passa um dicionário com variáveis adicionais
     >>> d = {Symbol('x'): 1, Symbol('y'): 2}
     >>> env(d)
@@ -99,28 +149,28 @@ def _make_global_env():
 
     dic = {
         **vars(math), # sin, cos, sqrt, pi, ...
-        '+':op.add, '-':op.sub, '*':op.mul, '/':op.truediv, 
-        '>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq, 
+        '+':op.add, '-':op.sub, '*':op.mul, '/':op.truediv,
+        '>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq,
         'abs':     abs,
-        'append':  op.add,  
+        'append':  op.add,
         'apply':   lambda proc, args: proc(*args),
         'begin':   lambda *x: x[-1],
         'car':     lambda x: head,
-        'cdr':     lambda x: x[1:], 
+        'cdr':     lambda x: x[1:],
         'cons':    lambda x,y: [x] + y,
-        'eq?':     op.is_, 
+        'eq?':     op.is_,
         'expt':    pow,
         'equal?':  op.eq,
         'even?':   lambda x: x % 2 == 0,
-        'length':  len, 
-        'list':    lambda *x: list(x), 
-        'list?':   lambda x: isinstance(x, list), 
+        'length':  len,
+        'list':    lambda *x: list(x),
+        'list?':   lambda x: isinstance(x, list),
         'map':     map,
         'max':     max,
         'min':     min,
         'not':     op.not_,
-        'null?':   lambda x: x == [], 
-        'number?': lambda x: isinstance(x, (float, int)),  
+        'null?':   lambda x: x == [],
+        'number?': lambda x: isinstance(x, (float, int)),
 		'odd?':   lambda x: x % 2 == 1,
         'print':   print,
         'procedure?': callable,
@@ -130,5 +180,4 @@ def _make_global_env():
     }
     return MappingProxyType({Symbol(k): v for k, v in dic.items()})
 
-global_env = _make_global_env() 
-
+global_env = _make_global_env()

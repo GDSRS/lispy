@@ -1,9 +1,11 @@
 import pytest
 from pathlib import Path
+import os
 
-examples_path = Path(__file__).parent / 'examples'
+
+examples_path = os.getcwd() +'/tests/examples'
 
 
 @pytest.fixture
 def example():
-    return lambda p: open(examples_path / p).read()
+    return lambda p: open(examples_path+ "/" + p).read()
